@@ -53,22 +53,22 @@ struct Point{
         }
     }
 };
+std::ostream &operator<<(std::ostream &os, const Point &p) { os << '(' << p.x << ", " << p.y << ')'; return os; }
 typedef std::vector<Point> Polygon;
 Polygon Convex_Hull(Polygon& p){
     // 凸包を求める, 出力後pはソートされる
     sort(p.begin(),p.end());
-    int n = p.size(), k = 0;
-    if(k >= 3){
-        Polygon ch(2 * n);
-        for(int i = 0; i < n; ch[k++] = p[i++]){
-            while(k >= 2 && (ch[k-1] - ch[k-2])^(p[i] - ch[k-1]) < 0)--k;
-        }
-        for(int i = n-2, t = k+1; i >= 0; ch[k++] = p[i--]){
-            while(k >= t && (ch[k-1] - ch[k-2])^(p[i]-ch[k-1]) < 0)--k;
-        }
-        ch.resize(k-1);
-        return ch;
-    }else{
-        return p;
+    int n = p.size();
+    Polygon G1, G2, ch;
+    G1.emplace_back(p[0]);G2.emplace_back(p[0]);
+    G1.emplace_back(p[1]);G2.emplace_back(p[1]);
+    for(int i = 2; i < n; i++){
+        while(G1.size() >= 2 && (((G1[G1.size()-1]-G1[G1.size()-2])^(p[i]-G1[G1.size()-1])) <= 0))G1.pop_back();
+        while(G2.size() >= 2 && (((G2[G2.size()-1]-G2[G2.size()-2])^(p[i]-G2[G2.size()-1])) >= 0))G2.pop_back();
+        G1.emplace_back(p[i]);
+        G2.emplace_back(p[i]);
     }
+    for(int i = 0; i < G1.size();i++)ch.emplace_back(G1[i]);
+    for(int i = (int)G2.size()-2; i>=1; i--)ch.emplace_back(G2[i]);
+    return ch;
 }
