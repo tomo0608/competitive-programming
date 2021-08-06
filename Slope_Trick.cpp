@@ -51,7 +51,7 @@ struct SlopeTrick{
 
     struct Query{
         T lx, rx, min_f;
-    }
+    };
 
     Query query() const{ // return min f(x)
         return (Query) {top_L(), top_R(), min_f};
