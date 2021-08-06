@@ -25,9 +25,6 @@ namespace geometry{
     double dot(const Point &a, const Point &b){
         return a.real()*b.real() + a.imag() * b.imag();
     }
-    double norm(const Point &a){
-        return std::sqrt(a.real()*a.real() + a.imag()*a.imag());
-    }
     double GetAngle(const Point &a, const Point &b, const Point &c){ // 角abc(小さい方)
         const Point v(b-a), w(c-b);
         double alpha = std::atan2(v.imag(), v.real()), beta = std::atan2(w.imag(), w.real());
@@ -77,7 +74,7 @@ namespace geometry{
         if(cross(b, c) > EPS)return +1; // "COUNTER_CLOCKWISE"
         if(cross(b, c) < -EPS)return -1; // "CLOCKWISE"
         if(dot(b, c) < -EPS)return +2; // "ONLINE_BACK"
-        if(norm(b) < norm(c))return -2;  // "ONLINE_FRONT"
+        if(std::norm(b) < std::norm(c))return -2;  // "ONLINE_FRONT"
         return 0; // "ON_SEGMENT"
     }
 
@@ -93,4 +90,38 @@ namespace geometry{
     Point Reflection(const Line &l, const Point &p){
         return p + (Projection(l, p) - p) * 2.0;
     }
+
+
+    bool Intersect(const Line &l0, const Line &l1){
+        return !eq(cross(l0.b - l0.a, l1.b - l1.a), 0.0);
+    }
+
+    bool Intersect(const Line &l, const Point &p){
+        return abs(ccw(l.a, l.b, p)) != 1;
+    }
+
+    bool Intersect(const Segment &s, const Point &p){
+        return ccw(s.a, s.b, p) == 0;
+    }
+
+    bool Intersect(const Line &l, const Segment &s){
+        return cross(l.b - l.a, s.a - l.a) * cross(l.b - l.a, s.b - l.a) < EPS;
+    }
+
+    bool Intersect(const Segment &s, const Segment &t){
+        return ccw(s.a, s.b, t.a) * ccw(s.a, s.b, t.b) <= 0 && ccw(t.a, t.b, s.a) * ccw(t.a, t.b, s.b) <= 0;
+    }
+    
+    double Distance(const Point &p, const Point &q){
+        return abs(p - q);
+    }
+
+    double Distance(const Line &l, const Point &p){
+        return abs(p - Projection(l, p));
+    }
+
+    double Distance(const Line &l0, const Line &l1){
+        return Intersect(l0, l1)? 0: Distance(l0, l1.a);
+    }
+
 }
