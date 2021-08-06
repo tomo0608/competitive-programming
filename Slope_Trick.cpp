@@ -59,7 +59,7 @@ struct SlopeTrick{
 
     T get_min() const{ return min_f; }
 
-    std::pair<T, T> min_range() const{return std::pair<T, T>{L.top() + add_L, R.top() + add_R};}
+    std::pair<T, T> min_range() const{return std::pair<T, T>{L.top() + add_l, R.top() + add_r};}
 
     void add_all(const T &a){ // f(x) += a
         min_f += a;
@@ -121,6 +121,6 @@ struct SlopeTrick{
         }
         while(!other_st.R.empty())add_x_minus_a(other_st.pop_R());
         while(!other_st.L.empty())add_a_minus_x(other_st.pop_L());
-        min_f += st.min_f;
+        min_f += other_st.min_f;
     }
 };
