@@ -167,6 +167,22 @@ namespace geometry{
         if(eq(A, 0.0) && eq(B, 0.0))return s1.a;
         return s1.a + (s1.b - s1.a)*B/A;
     }
+
+    double Area2(const Polygon &p){ // 多角形の面積の二倍
+        double A = 0.0;
+        for(int i = 0; i < p.size(); ++i){
+            A += cross(p[i], p[(i+1)%p.size()]);
+        }
+        return A;
+    }
+
+    bool isConvex(const Polygon &p){
+        int n = p.size();
+        for(int i = 0; i < n; ++i){
+            if(ccw(p[(i+n-1)%n], p[i], p[(i+1)%n]) == -1)return false;
+        }
+        return true;
+    }
 }
 
 using namespace geometry;
