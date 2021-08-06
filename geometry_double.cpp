@@ -81,11 +81,17 @@ namespace geometry{
     bool Parallel(const Line &l0, const Line &l1){
         return abs(cross(l0.b - l0.a, l1.b - l1.a)) < EPS;
     }
+
     bool  Orthogonal(const Line &l0, const Line &l1){
         return abs(dot(l0.b - l0.a, l1.b - l1.a)) < EPS;
     }
+
     Point Projection(const Line &l, const Point &p){ // pのLineへの射影
         return l.a + (l.b - l.a) * dot(l.b-l.a,p-l.a)/dot(l.b - l.a, l.b - l.a);
+    }
+
+    Point Projection(const Segment &s, const Point &p){
+        return s.a + (s.b - s.a) * dot(s.b-s.a,p-s.a)/dot(s.b - s.a, s.b - s.a);
     }
     Point Reflection(const Line &l, const Point &p){
         return p + (Projection(l, p) - p) * 2.0;
@@ -111,7 +117,7 @@ namespace geometry{
     bool Intersect(const Segment &s, const Segment &t){
         return ccw(s.a, s.b, t.a) * ccw(s.a, s.b, t.b) <= 0 && ccw(t.a, t.b, s.a) * ccw(t.a, t.b, s.b) <= 0;
     }
-    
+
     double Distance(const Point &p, const Point &q){
         return abs(p - q);
     }
@@ -124,4 +130,43 @@ namespace geometry{
         return Intersect(l0, l1)? 0: Distance(l0, l1.a);
     }
 
+    double Distance(const Segment &s, const Point &p){
+        Point r = Projection(s, p);
+        if(Intersect(s, r))return abs(r - p);
+        return min(abs(s.a - p), abs(s.b - p));
+    }
+
+    double Distance(const Segment &s0, const Segment &s1){
+        if(Intersect(s0, s1))return 0;
+        return min({Distance(s0, s1.a), Distance(s0, s1.b), Distance(s1, s0.a), Distance(s1, s0.b)});
+    }
+
+    double Distance(const Line &l, const Segment &s){
+        if(Intersect(l, s))return 0;
+        return min(Distance(l, s.a), Distance(l, s.b));
+    }
+
+    bool Intersect(const Circle &c, const Line &l){
+        return Distance(l, c.p) <= c.r + EPS;
+    }
+
+    bool Intersect(const Circle &c, const Point &p){
+        return Distance(p, c.p) <= c.r + EPS;
+    }
+
+    Point Crosspoint(const Line &l0, const Line &l1){
+        double A = cross(l0.b - l0.a, l1.b - l1.a);
+        double B = cross(l0.b - l0.a, l0.b - l1.a);
+        if(eq(A, 0.0) && eq(B, 0.0))return l1.a;
+        return l1.a + (l1.b - l1.a)*B/A;
+    }
+
+    Point Crosspoint(const Segment &s0, const Segment &s1){
+        double A = cross(s0.b - s0.a, s1.b - s1.a);
+        double B = cross(s0.b - s0.a, s0.b - s1.a);
+        if(eq(A, 0.0) && eq(B, 0.0))return s1.a;
+        return s1.a + (s1.b - s1.a)*B/A;
+    }
 }
+
+using namespace geometry;
