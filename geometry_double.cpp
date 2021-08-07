@@ -2,8 +2,8 @@
 
 namespace geometry{
     const double EPS = 1e-8, PI = acos(-1);
-
-    inline bool eq(double a, double b){return abs(a-b) < EPS;}
+    inline int sign(const double &r){return r <= -EPS ? -1: r >= EPS ? 1: 0;}
+    inline bool eq(double a, double b){return sign(a-b) == 0;}
 
     using Point = std::complex<double>;
     double radian_to_degree(double r){return r*180.0/PI;}
@@ -69,21 +69,21 @@ namespace geometry{
     using Lines = std::vector<Line>;
     using Circles = std::vector<Circle>;
 
-    int ccw(const Point &a, Point b, Point c){ // a,b,cの順に見て
+    int ccw(const Point &a, Point b, Point c){ // a,b,cの順に見てcが
         b = b - a, c = c - a;
-        if(cross(b, c) > EPS)return +1; // "COUNTER_CLOCKWISE"
-        if(cross(b, c) < -EPS)return -1; // "CLOCKWISE"
-        if(dot(b, c) < -EPS)return +2; // "ONLINE_BACK"
+        if(sign(cross(b, c))==1)return +1; // "COUNTER_CLOCKWISE"
+        if(sign(cross(b, c))==-1)return -1; // "CLOCKWISE"
+        if(sign(dot(b, c))==-1)return +2; // "ONLINE_BACK"
         if(std::norm(b) < std::norm(c))return -2;  // "ONLINE_FRONT"
         return 0; // "ON_SEGMENT"
     }
 
     bool Parallel(const Line &l0, const Line &l1){
-        return abs(cross(l0.b - l0.a, l1.b - l1.a)) < EPS;
+        return sign(cross(l0.b - l0.a, l1.b - l1.a)) == 0;
     }
 
     bool  Orthogonal(const Line &l0, const Line &l1){
-        return abs(dot(l0.b - l0.a, l1.b - l1.a)) < EPS;
+        return sign((dot(l0.b - l0.a, l1.b - l1.a))) == 0;
     }
 
     Point Projection(const Line &l, const Point &p){ // pのLineへの射影
@@ -111,7 +111,7 @@ namespace geometry{
     }
 
     bool Intersect(const Line &l, const Segment &s){
-        return cross(l.b - l.a, s.a - l.a) * cross(l.b - l.a, s.b - l.a) < EPS;
+        return sign(cross(l.b - l.a, s.a - l.a) * cross(l.b - l.a, s.b - l.a)) <= 0;
     }
 
     bool Intersect(const Segment &s, const Segment &t){
@@ -176,12 +176,42 @@ namespace geometry{
         return A;
     }
 
-    bool isConvex(const Polygon &p){
+    bool isConvex(const Polygon &p){ // 凸か
         int n = p.size();
         for(int i = 0; i < n; ++i){
             if(ccw(p[(i+n-1)%n], p[i], p[(i+1)%n]) == -1)return false;
         }
         return true;
+    }
+
+    enum{OUT, ON, IN};
+    int Contains(const Polygon &P, const Point &p){ // pがPの内部なら2, 辺なら1, 外部なら0
+        bool in = false;
+        for(int i = 0; i < P.size(); ++i){
+            if(ccw(P[i], P[(i+1)%P.size()], p) == 0)return ON;
+            Point a = P[i] - p, b = P[(i+1)%P.size()] - p;
+            if(a.imag() > b.imag())swap(a, b);
+            if(sign(a.imag()) <= 0 && 0 < sign(b.imag()) && sign(cross(a,b)) == -1)in = !in;
+        }
+        return in? IN: OUT;
+    }
+
+    Polygon Convex_Hull(Polygon &p, bool strict = true){
+        // 凸包を求める, 出力後pはソートされる
+        sort(p.begin(),p.end(), compare_x);
+        int n = p.size();
+        Polygon G1, G2, ch;
+        G1.emplace_back(p[0]);G2.emplace_back(p[0]);
+        G1.emplace_back(p[1]);G2.emplace_back(p[1]);
+        for(int i = 2; i < n; i++){
+            while(G1.size() >= 2 && (sign(cross((G1[G1.size()-1]-G1[G1.size()-2]),(p[i]-G1[G1.size()-1]))) <= -1 + strict))G1.pop_back();
+            while(G2.size() >= 2 && (sign(cross((G2[G2.size()-1]-G2[G2.size()-2]),(p[i]-G2[G2.size()-1]))) >= 1 - strict))G2.pop_back();
+            G1.emplace_back(p[i]);
+            G2.emplace_back(p[i]);
+        }
+        for(int i = 0; i < G1.size();i++)ch.emplace_back(G1[i]);
+        for(int i = (int)G2.size()-2; i>=1; i--)ch.emplace_back(G2[i]);
+        return ch;
     }
 }
 
