@@ -1,28 +1,32 @@
 #include<bits/stdc++.h>
 
 namespace geometry{
-    const double EPS = 1e-8, PI = acos(-1);
-    inline int sign(const double &r){return r <= -EPS ? -1: r >= EPS ? 1: 0;}
-    inline bool eq(double a, double b){return sign(a-b) == 0;}
+    using scalar = double; // long double
+    const scalar EPS = 1e-8, PI = acos(-1);
+    inline int sign(const scalar &r){return r <= -EPS ? -1: r >= EPS ? 1: 0;}
+    inline bool eq(scalar a, scalar b){return sign(a-b) == 0;}
 
-    using Point = std::complex<double>;
-    double radian_to_degree(double r){return r*180.0/PI;}
-    double degree_to_radian(double d){return d*PI/180.0;}
+    using Point = std::complex<scalar>;
+    double radian_to_degree(scalar r){return r*180.0/PI;}
+    double degree_to_radian(scalar d){return d*PI/180.0;}
     std::istream &operator>>(std::istream &is, Point &p){
-        double a, b;
+        scalar a, b;
         is >> a >> b;
         p = Point(a, b);
         return is;
     }
     std::ostream &operator<<(std::ostream &os, const Point &p) { os  <<std::setprecision(10) <<  p.real() << ' ' << p.imag(); return os; }
     #define POINT(...) Point __VA_ARGS__; input(__VA_ARGS__)
-    bool operator<(const Point &a, const Point &b){
-        return a.real() != b.real()? a.real() < b.real(): a.imag() < b.imag();
+    bool compare_x(const Point &a, const Point &b){
+        return eq(a.real(), b.real())? (a.imag() < b.imag()): (a.real() < b.real());
     }
-    double cross(const Point &a, const Point &b){
+    bool compare_y(const Point &a, const Point &b){
+        return eq(a.imag(), b.imag())? (a.real() < b.real()): (a.imag() < b.imag());
+    }
+    scalar cross(const Point &a, const Point &b){
         return a.real()*b.imag() - a.imag() * b.real();
     }
-    double dot(const Point &a, const Point &b){
+    scalar dot(const Point &a, const Point &b){
         return a.real()*b.real() + a.imag() * b.imag();
     }
     double GetAngle(const Point &a, const Point &b, const Point &c){ // 角abc(小さい方)
@@ -58,9 +62,9 @@ namespace geometry{
 
     struct Circle{
         Point p;
-        double r;
+        scalar r;
 
-        Circle(Point p = 0, double r = 0.0):p(p),r(r){};
+        Circle(Point p = 0, scalar r = 0.0):p(p),r(r){};
     };
 
     using Points = std::vector<Point>;
@@ -118,30 +122,30 @@ namespace geometry{
         return ccw(s.a, s.b, t.a) * ccw(s.a, s.b, t.b) <= 0 && ccw(t.a, t.b, s.a) * ccw(t.a, t.b, s.b) <= 0;
     }
 
-    double Distance(const Point &p, const Point &q){
+    scalar Distance(const Point &p, const Point &q){
         return abs(p - q);
     }
 
-    double Distance(const Line &l, const Point &p){
+    scalar Distance(const Line &l, const Point &p){
         return abs(p - Projection(l, p));
     }
 
-    double Distance(const Line &l0, const Line &l1){
+    scalar Distance(const Line &l0, const Line &l1){
         return Intersect(l0, l1)? 0: Distance(l0, l1.a);
     }
 
-    double Distance(const Segment &s, const Point &p){
+    scalar Distance(const Segment &s, const Point &p){
         Point r = Projection(s, p);
         if(Intersect(s, r))return abs(r - p);
         return min(abs(s.a - p), abs(s.b - p));
     }
 
-    double Distance(const Segment &s0, const Segment &s1){
+    scalar Distance(const Segment &s0, const Segment &s1){
         if(Intersect(s0, s1))return 0;
         return min({Distance(s0, s1.a), Distance(s0, s1.b), Distance(s1, s0.a), Distance(s1, s0.b)});
     }
 
-    double Distance(const Line &l, const Segment &s){
+    scalar Distance(const Line &l, const Segment &s){
         if(Intersect(l, s))return 0;
         return min(Distance(l, s.a), Distance(l, s.b));
     }
@@ -155,21 +159,21 @@ namespace geometry{
     }
 
     Point Crosspoint(const Line &l0, const Line &l1){
-        double A = cross(l0.b - l0.a, l1.b - l1.a);
-        double B = cross(l0.b - l0.a, l0.b - l1.a);
+        scalar A = cross(l0.b - l0.a, l1.b - l1.a);
+        scalar B = cross(l0.b - l0.a, l0.b - l1.a);
         if(eq(A, 0.0) && eq(B, 0.0))return l1.a;
         return l1.a + (l1.b - l1.a)*B/A;
     }
 
     Point Crosspoint(const Segment &s0, const Segment &s1){
-        double A = cross(s0.b - s0.a, s1.b - s1.a);
-        double B = cross(s0.b - s0.a, s0.b - s1.a);
+        scalar A = cross(s0.b - s0.a, s1.b - s1.a);
+        scalar B = cross(s0.b - s0.a, s0.b - s1.a);
         if(eq(A, 0.0) && eq(B, 0.0))return s1.a;
         return s1.a + (s1.b - s1.a)*B/A;
     }
 
-    double Area2(const Polygon &p){ // 多角形の面積の二倍
-        double A = 0.0;
+    scalar Area2(const Polygon &p){ // 多角形の面積の二倍
+        scalar A = 0.0;
         for(int i = 0; i < p.size(); ++i){
             A += cross(p[i], p[(i+1)%p.size()]);
         }
@@ -212,6 +216,40 @@ namespace geometry{
         for(int i = 0; i < G1.size();i++)ch.emplace_back(G1[i]);
         for(int i = (int)G2.size()-2; i>=1; i--)ch.emplace_back(G2[i]);
         return ch;
+    }
+
+    pair<scalar, pair<int,int>> farthest_pair(Polygon &p){ // 凸であることは前提
+        int n = p.size();
+        auto chmax = [&](scalar &a, const scalar &b){if(sign(a-b) == -1){a = b; return true;}return false;};
+        if(n == 2){ // 凸包が潰れている場合は特別処理
+            return {Distance(p[0], p[1]), {0, 1}};
+        }
+        int i = 0, j = 0; // ある方向に最も遠い点対
+        for(int k = 0; k < n; ++k){
+            if(!compare_x(p[k], p[i]))i = k;
+            if(compare_x(p[k], p[j]))j = k;
+        }
+        scalar d = 0;
+        int a = i, b = j, si = i, sj = j;
+        while(i != sj || j != si){
+            if(chmax(d, abs(p[i]-p[j])))a = i, b = j;
+            if(sign(cross(p[(i+1)%n]-p[i], p[(j+1)%n]-p[j])) == -1){
+                i = (i+1)%n;
+            }else{
+                j = (j+1)%n;
+            }
+        }
+        return {d, {a, b}};
+    }
+
+    Polygon convex_cut(Polygon &P, Line l){ // 凸多角形Pをlで切断し左側にできる凸多角形を出力
+        Polygon res;
+        for(int i = 0; i < P.size(); ++i){
+            Point now =P[i], nxt = P[(i+1)%P.size()];
+            if(ccw(l.a, l.b, now) != -1)res.emplace_back(now); // 直線の右にさえなければ必要
+            if(ccw(l.a, l.b, now) * ccw(l.a, l.b, nxt) < 0)res.emplace_back(Crosspoint(Line(now, nxt), l));
+        }
+        return res;
     }
 }
 
