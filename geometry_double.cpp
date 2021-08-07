@@ -218,7 +218,7 @@ namespace geometry{
         return ch;
     }
 
-    pair<scalar, pair<int,int>> farthest_pair(Polygon &p){ // 凸であることは前提
+    pair<scalar, pair<int,int>> farthest_pair(Polygon &p){ // 凸であることは前提, 直径を求める
         int n = p.size();
         auto chmax = [&](scalar &a, const scalar &b){if(sign(a-b) == -1){a = b; return true;}return false;};
         if(n == 2){ // 凸包が潰れている場合は特別処理
@@ -250,6 +250,41 @@ namespace geometry{
             if(ccw(l.a, l.b, now) * ccw(l.a, l.b, nxt) < 0)res.emplace_back(Crosspoint(Line(now, nxt), l));
         }
         return res;
+    }
+
+    pair<scalar, pair<int,int>> closest_pair(Points &p){ //点の集合の中で最も近い2点とその間の距離を出力
+        std::vector<pair<Point, int>>  dat(p.size());
+        for(int i = 0; i < p.size(); ++i)dat[i] = {p[i], i};
+        auto cmp_x = [&](pair<Point, int> a, pair<Point, int> b){return compare_x(a.first, b.first);};
+        auto cmp_y = [&](pair<Point, int> a, pair<Point, int> b){return compare_y(a.first, b.first);};
+        auto chmin = [](pair<scalar,pair<int,int>> &a, const pair<scalar,pair<int,int>> &b)->bool{
+            if(sign(a.first-b.first) == 1){
+                a = b;
+                return true;
+            }
+            return false;
+        };
+        sort(dat.begin(),dat.end(), cmp_x);
+        auto rec = [&](auto &&rec, int l, int r)->pair<scalar, pair<int,int>>{
+            if(r-l <= 1)return {INF, {p.size(), p.size()}};
+            int m = (l+r)/2;
+            scalar x = dat[m].first.real();
+            pair<scalar, pair<int,int>> d = min(rec(rec,l, m), rec(rec,  m, r));
+            std::inplace_merge(dat.begin()+l, dat.begin()+m, dat.begin()+r, cmp_y);
+            std::vector<pair<Point, int> > q;
+            for(int i = l; i < r; ++i){
+                if(sign(abs(dat[i].first.real()-x)-d.first) == 1)continue;
+
+                for(int j = q.size()-1; j >= 0; --j){
+                    Point dz = dat[i].first - q[j].first;
+                    if(sign(dz.imag() - d.first) >= 0)break;
+                    chmin(d, {abs(dz), {dat[i].second, q[j].second}});
+                }
+                q.emplace_back(dat[i]);
+            }   
+            return d;
+        };
+        return rec(rec, 0, p.size());
     }
 }
 
