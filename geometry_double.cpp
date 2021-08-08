@@ -148,17 +148,17 @@ namespace geometry{
     scalar Distance(const Segment &s, const Point &p){
         Point r = Projection(s, p);
         if(Intersect(s, r))return abs(r - p);
-        return min(abs(s.a - p), abs(s.b - p));
+        return std::min(abs(s.a - p), abs(s.b - p));
     }
 
     scalar Distance(const Segment &s0, const Segment &s1){
         if(Intersect(s0, s1))return 0;
-        return min({Distance(s0, s1.a), Distance(s0, s1.b), Distance(s1, s0.a), Distance(s1, s0.b)});
+        return std::min({Distance(s0, s1.a), Distance(s0, s1.b), Distance(s1, s0.a), Distance(s1, s0.b)});
     }
 
     scalar Distance(const Line &l, const Segment &s){
         if(Intersect(l, s))return 0;
-        return min(Distance(l, s.a), Distance(l, s.b));
+        return std::min(Distance(l, s.a), Distance(l, s.b));
     }
 
     bool Intersect(const Circle &c, const Line &l){
@@ -192,37 +192,37 @@ namespace geometry{
         return s1.a + (s1.b - s1.a)*B/A;
     }
 
-    pair<Point,Point> Crosspoint(const Circle &c, const Line &l){ // 交点がないとバグる, 1個のときは同じものが二つ出力される
+    std::pair<Point,Point> Crosspoint(const Circle &c, const Line &l){ // 交点がないとバグる, 1個のときは同じものが二つ出力される
         Point pj = Projection(l, c.p), high = pj - c.p;
-        Point v = (l.b - l.a) * sqrt(max(scalar(0.0),norm(c.r) - norm(high)))/abs(l.b - l.a);
-        return pair(pj - v, pj + v);
+        Point v = (l.b - l.a) * std::sqrt(std::max(scalar(0.0),std::norm(c.r) - std::norm(high)))/abs(l.b - l.a);
+        return std::pair(pj - v, pj + v);
     }
 
-    pair<Point,Point> Crosspoint(const Circle &c1, const Circle &c2){// 交点がないとバグる, 1個のときは同じものが二つ出力される
+    std::pair<Point,Point> Crosspoint(const Circle &c1, const Circle &c2){// 交点がないとバグる, 1個のときは同じものが二つ出力される
         Point v = c2.p - c1.p, w(-v.imag(), v.real());
         scalar d = abs(v);
         scalar x = (d*d + c1.r*c1.r - c2.r*c2.r)/(2*d);
-        scalar y = sqrt(max(c1.r*c1.r - x*x, scalar(0.0)));
-        return pair(c1.p + v*x/d - w*y/d, c1.p + v*x/d + w*y/d);
+        scalar y = std::sqrt(std::max(c1.r*c1.r - x*x, scalar(0.0)));
+        return std::pair(c1.p + v*x/d - w*y/d, c1.p + v*x/d + w*y/d);
     }
 
-    pair<Point, Point> tangent(const Circle &c, const Point &p){// pからcへの接線の接点2つ
+    std::pair<Point, Point> tangent(const Circle &c, const Point &p){// pからcへの接線の接点2つ
         return Crosspoint(c, Circle(p, sqrt(norm(c.p - p) - c.r * c.r)));
     }
 
     Lines getCommonTangent(Circle c1, Circle c2){// c1, c2の共通接線(最大4本)
         Lines ls;
-        if(c1.r < c2.r)swap(c1, c2);
+        if(c1.r < c2.r)std::swap(c1, c2);
         scalar g = norm(c1.p - c2.p);
         if(eq(g, 0.0))return ls;
-        Point u = (c2.p - c1.p)/sqrt(g);
+        Point u = (c2.p - c1.p)/std::sqrt(g);
         Point v = {-u.imag(), u.real()};
         for(int s: {-1, 1}){
             scalar h = (c1.r + c2.r * s)/sqrt(g);
             if(eq(1-h*h, 0)){
                 ls.emplace_back(c1.p + u*c1.r, c1.p + (u+v)*c1.r);
             }else if(sign(1-h*h) == 1){
-                Point uu = u * h, vv = v * sqrt(1 - h*h);
+                Point uu = u * h, vv = v * std::sqrt(1 - h*h);
                 ls.emplace_back(c1.p + (uu + vv)*c1.r, c2.p - (uu + vv)*(c2.r * s));
                 ls.emplace_back(c1.p + (uu - vv)*c1.r, c2.p - (uu - vv)*(c2.r * s));
             }
@@ -242,7 +242,7 @@ namespace geometry{
         int flag = Intersect(c1, c2);
         if(flag >= 3)return scalar(0);
         if(flag <= 1){
-            scalar r = min(c1.r, c2.r);
+            scalar r = std::min(c1.r, c2.r);
             return r*r*PI;
         }
         scalar d = Distance(c1.p, c2.p);
@@ -250,7 +250,7 @@ namespace geometry{
         for(int i = 0; i < 2; ++i){
             scalar t = acos((d*d + c1.r*c1.r - c2.r*c2.r)/(2*d*c1.r))*2;
             ret += (t - sin(t))*c1.r*c1.r/2;
-            swap(c1, c2);
+            std::swap(c1, c2);
         }
         return ret;
     }
@@ -292,7 +292,7 @@ namespace geometry{
         return ch;
     }
 
-    pair<scalar, pair<int,int>> farthest_pair(Polygon &p){ // 凸であることは前提, 直径を求める
+    std::pair<scalar, std::pair<int,int>> farthest_pair(Polygon &p){ // 凸であることは前提, 直径を求める
         int n = p.size();
         auto chmax = [&](scalar &a, const scalar &b){if(sign(a-b) == -1){a = b; return true;}return false;};
         if(n == 2){ // 凸包が潰れている場合は特別処理
@@ -326,12 +326,12 @@ namespace geometry{
         return res;
     }
 
-    pair<scalar, pair<int,int>> closest_pair(Points &p){ //点の集合の中で最も近い2点とその間の距離を出力
-        std::vector<pair<Point, int>>  dat(p.size());
+    std::pair<scalar, std::pair<int,int>> closest_pair(Points &p){ //点の集合の中で最も近い2点とその間の距離を出力
+        std::vector<std::pair<Point, int>>  dat(p.size());
         for(int i = 0; i < p.size(); ++i)dat[i] = {p[i], i};
-        auto cmp_x = [&](pair<Point, int> a, pair<Point, int> b){return compare_x(a.first, b.first);};
-        auto cmp_y = [&](pair<Point, int> a, pair<Point, int> b){return compare_y(a.first, b.first);};
-        auto chmin = [](pair<scalar,pair<int,int>> &a, const pair<scalar,pair<int,int>> &b)->bool{
+        auto cmp_x = [&](std::pair<Point, int> a, std::pair<Point, int> b){return compare_x(a.first, b.first);};
+        auto cmp_y = [&](std::pair<Point, int> a, std::pair<Point, int> b){return compare_y(a.first, b.first);};
+        auto chmin = [](std::pair<scalar,std::pair<int,int>> &a, const std::pair<scalar,std::pair<int,int>> &b)->bool{
             if(sign(a.first-b.first) == 1){
                 a = b;
                 return true;
@@ -339,13 +339,13 @@ namespace geometry{
             return false;
         };
         sort(dat.begin(),dat.end(), cmp_x);
-        auto rec = [&](auto &&rec, int l, int r)->pair<scalar, pair<int,int>>{
+        auto rec = [&](auto &&rec, int l, int r)->std::pair<scalar, std::pair<int,int>>{
             if(r-l <= 1)return {INF, {p.size(), p.size()}};
             int m = (l+r)/2;
             scalar x = dat[m].first.real();
-            pair<scalar, pair<int,int>> d = min(rec(rec,l, m), rec(rec,  m, r));
+            std::pair<scalar, std::pair<int,int>> d = min(rec(rec,l, m), rec(rec,  m, r));
             std::inplace_merge(dat.begin()+l, dat.begin()+m, dat.begin()+r, cmp_y);
-            std::vector<pair<Point, int> > q;
+            std::vector<std::pair<Point, int> > q;
             for(int i = l; i < r; ++i){
                 if(sign(abs(dat[i].first.real()-x)-d.first) == 1)continue;
 
@@ -384,7 +384,7 @@ namespace geometry{
         Points ch = Convex_Hull(p);
         int K = ch.size();
         auto check = [&](Circle c){
-            rep(i,K)if(sign(abs(ch[i]-c.p)-c.r) == 1)return false;
+            for(int i = 0; i < K; ++i)if(sign(abs(ch[i]-c.p)-c.r) == 1)return false;
             return true;
         };
         for(int i = 0; i < K; ++i)for(int j = i+1; j < K; ++j){
