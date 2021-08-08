@@ -35,7 +35,7 @@ namespace geometry{
     }
 
     scalar GetAngle(const Point &a, const Point &b, const Point &c){ // 角abc(小さい方)
-        const Point v(b-a), w(c-b);
+        const Point v(a-b), w(c-b);
         scalar alpha = std::atan2(v.imag(), v.real()), beta = std::atan2(w.imag(), w.real());
         scalar theta = abs(beta - alpha);
         return std::min(theta, 2*PI - theta);
