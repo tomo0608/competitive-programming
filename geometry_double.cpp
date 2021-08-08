@@ -40,7 +40,11 @@ namespace geometry{
         scalar theta = abs(beta - alpha);
         return std::min(theta, 2*PI - theta);
     }
-
+    
+    Point rotate(const Point &p, const scalar &theta){ // 回転
+        return Point(p.real()*scalar(std::cos(theta)) - p.imag()*scalar(std::sin(theta)), p.real()*scalar(std::sin(theta)) + p.imag()*scalar(std::cos(theta)));
+    }
+    
     struct Line{ // 直線
         Point a, b;
 
