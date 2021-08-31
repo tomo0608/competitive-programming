@@ -33,3 +33,14 @@ class unionfind:
         result = [[] for _ in range(self._n)]
         for i in range(self._n): result[leader_buf[i]].append(i)
         return [r for r in result if r != []]
+
+
+# https://old.yosupo.jp/problem/unionfind
+n,q = map(int,input().split())
+uf = unionfind(n)
+for _ in range(q):
+    t,u,v = map(int,input().split())
+    if t:
+        print(1 if uf.same(u,v) else 0)
+    else:
+        uf.merge(u,v)
