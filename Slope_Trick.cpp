@@ -1,14 +1,12 @@
 #include<bits/stdc++.h>
 
-using namespace std;
-
 template<typename T>
 struct SlopeTrick{
-    const T INF = numeric_limits<T>::max()/3;
+    const T INF = std::numeric_limits<T>::max()/3;
 
     T min_f; // fの最小値
-    priority_queue<T, vector<T>, less<> > L; // 傾きが0以下の部分について傾きの変化点全体の多重集合
-    priority_queue<T, vector<T>, greater<> > R; // 傾きが0以上の部分について傾きの変化点全体の多重集合
+    std::priority_queue<T, std::vector<T>, std::less<> > L; // 傾きが0以下の部分について傾きの変化点全体の多重集合
+    std::priority_queue<T, std::vector<T>, std::greater<> > R; // 傾きが0以上の部分について傾きの変化点全体の多重集合
     T add_l, add_r;// l,rへの一律加算
     
     private:
@@ -113,11 +111,11 @@ struct SlopeTrick{
 
     void merge(SlopeTrick &other_st){ //mergeを行うが, stは破壊される
         if(other_st.size() > size()){
-            swap(other_st.L, L);
-            swap(other_st.R, R);
-            swap(other_st.add_l, add_l);
-            swap(other_st.add_r, add_r);
-            swap(other_st.min_f,min_f);
+            std::swap(other_st.L, L);
+            std::swap(other_st.R, R);
+            std::swap(other_st.add_l, add_l);
+            std::swap(other_st.add_r, add_r);
+            std::swap(other_st.min_f,min_f);
         }
         while(!other_st.R.empty())add_x_minus_a(other_st.pop_R());
         while(!other_st.L.empty())add_a_minus_x(other_st.pop_L());
