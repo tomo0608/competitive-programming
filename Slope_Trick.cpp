@@ -64,13 +64,13 @@ struct SlopeTrick{
     }
 
     void add_a_minus_x(const T &a){ // f(x) += max(a-x, 0) \_
-        min_f += max(T(0), a - top_R());
+        min_f += std::max(T(0), a - top_R());
         push_R(a);
         push_L(pop_R());
     }
 
     void add_x_minus_a(const T &a){ // f(x) += max(x-a, 0) _/
-        min_f += max(T(0), top_L() - a);
+        min_f += std::max(T(0), top_L() - a);
         push_L(a);
         push_R(pop_L());
     }
